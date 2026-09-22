@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIM-ASET - Admin Backend Panel</title>
-    <!-- Jalur CDN Resmi Lengkap & Terverifikasi -->
+    <!-- Jalur CDN Resmi Paling Stabil -->
     <script src="https://tailwindcss.com"></script>
     <script src="https://unpkg.com"></script>
     <script src="https://unpkg.com"></script>
@@ -32,7 +32,7 @@
                 <button @click="openModal('add-asset')" class="bg-indigo-600 hover:bg-indigo-700 text-xs px-4 py-2 rounded-xl text-white">Tambah Aset Baru</button>
             </div>
         </header>
-        <!-- TABEL KELOLA DATA BARANG ASET -->
+        <!-- TABEL DATA BARANG ASET -->
         <div v-if="activeTab === 'assets'" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead><tr class="bg-slate-50 border-b border-slate-200 text-slate-600 text-xs uppercase"><th class="p-3">Nama Barang</th><th class="p-3">Kode</th><th class="p-3">Ruangan</th><th class="p-3">Kondisi</th><th class="p-3 text-center">Aksi</th></tr></thead>
@@ -45,11 +45,11 @@
                             <button @click="deleteAsset(item.id)" class="bg-rose-600 text-white text-xs px-2.5 py-1 rounded-lg">Hapus</button>
                         </td>
                     </tr>
-                    <tr v-if="assets.length === 0"><td colspan="5" class="p-4 text-center text-slate-400">Tidak ada data aset di database Supabase Anda.</td></tr>
+                    <tr v-if="assets.length === 0"><td colspan="5" class="p-4 text-center text-slate-400">Tidak ada data aset atau koneksi database sedang dimuat...</td></tr>
                 </tbody>
             </table>
         </div>
-        <!-- TABEL UPDATE JADWAL KALIBRASI -->
+        <!-- TABEL JADWAL KALIBRASI -->
         <div v-if="activeTab === 'calibration'" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead><tr class="bg-slate-50 border-b border-slate-200 text-slate-600 text-xs uppercase"><th class="p-3">Nama Barang</th><th class="p-3">Tgl Kalibrasi Terakhir</th><th class="p-3">Jadwal Berikutnya</th><th class="p-3 text-center">Aksi</th></tr></thead>
@@ -64,23 +64,24 @@
     </main>
 </div>
 
-<!-- MODAL POPUP INPUT DATA -->
+<!-- MODAL ENTRY DATA BARU -->
 <div v-if="showAddModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden p-6 text-slate-800 space-y-4">
         <h3 class="font-bold text-lg">{{ isEditMode ? 'Form Ubah Aset' : 'Form Tambah Aset Baru' }}</h3>
-        <input v-model="newAsset.nama_barang" placeholder="Nama Barang" type="text" class="w-full px-3 py-2 border rounded-xl bg-slate-50 text-slate-900">
-        <input v-model="newAsset.kode_barang" placeholder="Kode Barang" type="text" class="w-full px-3 py-2 border rounded-xl bg-slate-50 text-slate-900">
-        <input v-model="newAsset.ruangan" placeholder="Lokasi Ruangan" type="text" class="w-full px-3 py-2 border rounded-xl bg-slate-50 text-slate-900">
-        <select v-model="newAsset.kondisi" class="w-full px-3 py-2 border rounded-xl bg-slate-50 text-slate-900"><option value="Baik">Baik</option><option value="Rusak Ringan">Rusak Ringan</option><option value="Rusak Berat">Rusak Berat</option></select>
+        <input v-model="newAsset.nama_barang" placeholder="Nama Barang" type="text" class="w-full px-3 py-2 border rounded-xl bg-slate-50">
+        <input v-model="newAsset.kode_barang" placeholder="Kode Barang" type="text" class="w-full px-3 py-2 border rounded-xl bg-slate-50">
+        <input v-model="newAsset.ruangan" placeholder="Lokasi Ruangan" type="text" class="w-full px-3 py-2 border rounded-xl bg-slate-50">
+        <select v-model="newAsset.kondisi" class="w-full px-3 py-2 border rounded-xl bg-slate-50"><option value="Baik">Baik</option><option value="Rusak Ringan">Rusak Ringan</option><option value="Rusak Berat">Rusak Berat</option></select>
         <div class="flex justify-end gap-2"><button @click="showAddModal = false" class="px-4 py-2 bg-slate-100 text-sm rounded-xl">Batal</button><button @click="submitAsset" class="px-4 py-2 bg-indigo-600 text-white text-sm rounded-xl">Simpan</button></div>
     </div>
 </div>
-<!-- MODAL UPDATE JADWAL KALIBRASI -->
+
+<!-- MODAL UPDATE KALIBRASI -->
 <div v-if="showCalModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden p-6 text-slate-800 space-y-4">
         <h3 class="font-bold text-lg">Set Kalibrasi: {{ selectedAssetForCal.nama_barang }}</h3>
-        <div><label class="text-xs text-slate-500 font-semibold block mb-1">Terakhir Kalibrasi</label><input type="date" v-model="calibrationData.terakhir_kalibrasi" class="w-full px-3 py-2 border rounded-xl bg-slate-50 text-slate-900"></div>
-        <div><label class="text-xs text-slate-500 font-semibold block mb-1">Jadwal Kalibrasi Berikutnya</label><input type="date" v-model="calibrationData.jadwal_kalibrasi" class="w-full px-3 py-2 border rounded-xl bg-slate-50 text-slate-900"></div>
+        <div><label class="text-xs text-slate-500 font-semibold block mb-1">Terakhir Kalibrasi</label><input type="date" v-model="calibrationData.terakhir_kalibrasi" class="w-full px-3 py-2 border rounded-xl bg-slate-50"></div>
+        <div><label class="text-xs text-slate-500 font-semibold block mb-1">Jadwal Kalibrasi Berikutnya</label><input type="date" v-model="calibrationData.jadwal_kalibrasi" class="w-full px-3 py-2 border rounded-xl bg-slate-50"></div>
         <div class="flex justify-end gap-2"><button @click="showCalModal = false" class="px-4 py-2 bg-slate-100 text-sm rounded-xl">Batal</button><button @click="submitCalibrationUpdate" class="px-4 py-2 bg-indigo-600 text-white text-sm rounded-xl">Simpan</button></div>
     </div>
 </div>
@@ -89,8 +90,8 @@
     const SUPABASE_URL = 'https://wzmjdlxnjoyzzvzpmhqj.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6bWpkbHhuam95enp2enBtaHFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAwMTU2NjgsImV4cCI6MjEwNTU5MTY2OH0.i8LtB72RGso_--VhWNQVpjFr44dHK_pYpRqsuMkCQ4c';
     
-    // Inisialisasi aman dari objek global window browser
-    const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Kita buat penampung klien Supabase kosong di awal
+    let _supabase = null;
     const { createApp } = Vue;
 
     createApp({
@@ -102,6 +103,17 @@
             }
         },
         methods: {
+            // FUNGSI UTAMA: Menunggu CDN Supabase sampai 100% siap dimuat browser
+            initSupabaseAndFetch() {
+                if (window.supabase && window.supabase.createClient) {
+                    _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    console.log("Koneksi Supabase siap!");
+                    this.fetchAssets();
+                } else {
+                    // Jika pustaka CDN Supabase belum siap, tunda 100 milidetik lalu coba lagi secara berulang
+                    setTimeout(this.initSupabaseAndFetch, 100);
+                }
+            },
             openModal(type) {
                 if (type === 'add-asset') {
                     this.isEditMode = false;
@@ -110,45 +122,9 @@
                 }
             },
             async fetchAssets() {
+                if (!_supabase) return;
                 const { data, error } = await _supabase.from('sim-aset-db').select('*');
                 if (!error) this.assets = data;
             },
             async submitAsset() {
-                if (this.isEditMode) {
-                    const { error } = await _supabase.from('sim-aset-db').update(this.newAsset).eq('id', this.editingId);
-                    if (!error) { this.showAddModal = false; this.fetchAssets(); }
-                } else {
-                    const { error } = await _supabase.from('sim-aset-db').insert([this.newAsset]);
-                    if (!error) { this.showAddModal = false; this.fetchAssets(); }
-                }
-            },
-            editAssetBtn(item) {
-                this.isEditMode = true; this.editingId = item.id;
-                this.newAsset = { nama_barang: item.nama_barang, kode_barang: item.kode_barang, ruangan: item.ruangan, kondisi: item.kondisi };
-                this.showAddModal = true;
-            },
-            async deleteAsset(id) {
-                if (confirm('Hapus aset secara permanen?')) {
-                    const { error } = await _supabase.from('sim-aset-db').delete().eq('id', id);
-                    if (!error) this.fetchAssets();
-                }
-            },
-            openCalibrationModal(item) {
-                this.selectedAssetForCal = item;
-                this.calibrationData.terakhir_kalibrasi = item.terakhir_kalibrasi || '';
-                this.calibrationData.jadwal_kalibrasi = item.jadwal_kalibrasi || '';
-                this.showCalModal = true;
-            },
-            async submitCalibrationUpdate() {
-                const { error } = await _supabase.from('sim-aset-db').update({
-                    terakhir_kalibrasi: this.calibrationData.terakhir_kalibrasi,
-                    jadwal_kalibrasi: this.calibrationData.jadwal_kalibrasi
-                }).eq('id', this.selectedAssetForCal.id);
-                if (!error) { this.showCalModal = false; this.fetchAssets(); }
-            }
-        },
-        mounted() { this.fetchAssets(); }
-    }).mount('#app');
-</script>
-</body>
-</html>
+                if (!_supabase) return;
