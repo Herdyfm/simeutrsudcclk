@@ -85,18 +85,104 @@
             </div>
         </header>
 
-        <script>
+       <script>
+    // 1. Kredensial URL & Key Anda
     const SUPABASE_URL = 'https://wzmjdlxnjoyzzvzpmhqj.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6bWpkbHhuam95enp2enBtaHFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAwMTU2NjgsImV4cCI6MjEwNTU5MTY2OH0.i8LtB72RGso_--VhWNQVpjFr44dHK_pYpRqsuMkCQ4c';
     
-    // Inisialisasi Klien Supabase & Vue App
-    const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Kita buat variabel kosong terlebih dahulu agar tidak memicu error crash di awal
+    let _supabase = null;
+
     const { createApp } = Vue;
 
     createApp({
-        // Vue application logic omitted for brevity, please refer to the original implementation
+        data() {
+            return {
+                activeTab: 'assets',
+                assets: [],
+                showAddModal: false,
+                showImportModal: false,
+                showCalModal: false,
+                isEditMode: false,
+                editingId: null,
+                newAsset: { nama_barang: '', kode_barang: '', ruangan: '', kondisi: 'Baik' },
+                selectedAssetForCal: {},
+                calibrationData: { terakhir_kalibrasi: '', jadwal_kalibrasi: '' }
+            }
+        },
+        methods: {
+            // Fungsi inisialisasi Supabase yang aman setelah halaman web siap
+            initSupabase() {
+                if (window.supabase) {
+                    _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    this.fetchAssets();
+                } else {
+                    // Jika koneksi CDN lambat, kita tunggu 100ms lalu coba hubungkan kembali
+                    setTimeout(this.initSupabase, 100);
+                }
+            },
+            openModal(type) {
+                if (type === 'add-asset') {
+                    this.isEditMode = false;
+                    this.newAsset = { nama_barang: '', kode_barang: '', ruangan: '', kondisi: 'Baik' };
+                    this.showAddModal = true;
+                }
+            },
+            async fetchAssets() {
+                if (!_supabase) return;
+                const { data, error } = await _supabase.from('sim-aset-db').select('*');
+                if (!error) {
+                    this.assets = data;
+                    console.log('Data sukses dimuat ke Vue:', this.assets);
+                } else {
+                    console.error(error.message);
+                }
+            },
+            async submitAsset() {
+                if (!_supabase) return;
+                if (this.isEditMode) {
+                    const { error } = await _supabase.from('sim-aset-db').update(this.newAsset).eq('id', this.editingId);
+                    if (!error) { this.showAddModal = false; this.fetchAssets(); }
+                } else {
+                    const { error } = await _supabase.from('sim-aset-db').insert([this.newAsset]);
+                    if (!error) { this.showAddModal = false; this.fetchAssets(); }
+                }
+            },
+            editAssetBtn(item) {
+                this.isEditMode = true;
+                this.editingId = item.id;
+                this.newAsset = { nama_barang: item.nama_barang, kode_barang: item.kode_barang, ruangan: item.ruangan, kondisi: item.kondisi };
+                this.showAddModal = true;
+            },
+            async deleteAsset(id) {
+                if (!_supabase) return;
+                if (confirm('Hapus aset ini secara permanen?')) {
+                    const { error } = await _supabase.from('sim-aset-db').delete().eq('id', id);
+                    if (!error) this.fetchAssets();
+                }
+            },
+            openCalibrationModal(item) {
+                this.selectedAssetForCal = item;
+                this.calibrationData.terakhir_kalibrasi = item.terakhir_kalibrasi || '';
+                this.calibrationData.jadwal_kalibrasi = item.jadwal_kalibrasi || '';
+                this.showCalModal = true;
+            },
+            async submitCalibrationUpdate() {
+                if (!_supabase) return;
+                const { error } = await _supabase.from('sim-aset-db').update({
+                    terakhir_kalibrasi: this.calibrationData.terakhir_kalibrasi,
+                    jadwal_kalibrasi: this.calibrationData.jadwal_kalibrasi
+                }).eq('id', this.selectedAssetForCal.id);
+                if (!error) { this.showCalModal = false; this.fetchAssets(); }
+            }
+        },
+        mounted() {
+            // Jalankan inisialisasi aman begitu komponen Vue ditempelkan ke HTML
+            this.initSupabase();
+        }
     }).mount('#app');
 </script>
+
 </body>
 </html>
         
