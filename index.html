@@ -3,213 +3,181 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIM-ASET - Dashboard & Control Panel</title>
-    
-    <!-- Library Inti Terpercaya & Anti-Blokir -->
-    <script src="https://cloudflare.com"></script>
-    <script src="https://cloudflare.com"></script>
-    <script src="https://cloudflare.com"></script>
-    <link rel="stylesheet" href="https://cloudflare.com">
-    <link rel="stylesheet" href="https://googleapis.com">
-    
-    <!-- CSS Murni Pengunci Struktur Layout (Menjamin Halaman Tetap Rapi & Berwarna Gelap) -->
-    <style>
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: #0f172a !important; 
-            color: #f8fafc !important; 
-            margin: 0; 
-            padding: 0;
-        }
-        .custom-layout {
-            display: flex;
-            flex-direction: row;
-            min-height: 100vh;
-        }
-        .custom-sidebar {
-            width: 260px;
-            background-color: #020617;
-            border-right: 1px solid #1e293b;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-        }
-        .custom-main {
-            flex-1: 1 1 0%;
-            display: flex;
-            flex-direction: column;
-            background-color: #0f172a;
-            width: 100%;
-        }
-        .custom-header {
-            background-color: #020617;
-            border-bottom: 1px solid #1e293b;
-            padding: 16px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .nav-button {
-            width: 100%;
-            text-align: left;
-            display: flex;
-            align-items: center;
-            padding: 12px 16px;
-            border-radius: 12px;
-            margin-bottom: 6px;
-            color: #94a3b8;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-        .nav-button:hover, .nav-button.active {
-            background-color: #4f46e5;
-            color: #ffffff;
-        }
-        .card-box {
-            background-color: #020617;
-            border: 1px solid #1e293b;
-            border-radius: 16px;
-            padding: 20px;
-        }
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-        .data-table th {
-            background-color: #0f172a;
-            color: #94a3b8;
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #1e293b;
-        }
-        .data-table td {
-            padding: 12px;
-            border-bottom: 1px solid #1e293b;
-        }
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background-color: rgba(0,0,0,0.75);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 999;
-            padding: 16px;
-        }
-    </style>
+    <title>Sistem Informasi KIR & Kalibrasi - RSUD Cicalengka</title>
+    <!-- Tailwind CSS -->
+    <script src="https://jsdelivr.net"></script>
+    <!-- Supabase JS SDK -->
+    <script src="https://jsdelivr.net"></script>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 font-sans">
 
-<div id="app" class="custom-layout">
+    <!-- HEADER -->
+    <header class="bg-teal-700 text-white shadow-md">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold tracking-wide">RSUD CICALENGKA</h1>
+                <p class="text-xs text-teal-100">Sistem Informasi Kartu Inventaris Ruangan & Kalibrasi Aset</p>
+            </div>
+            <div>
+                <button id="btnAuthAction" onclick="toggleAuthModal()" class="bg-teal-600 hover:bg-teal-500 px-4 py-2 rounded text-sm font-semibold transition">
+                    Log In Admin
+                </button>
+            </div>
+        </div>
+    </header>
 
-    <!-- Sidebar Kontrol Panel Kiri -->
-    <aside class="custom-sidebar">
-        <div>
-            <div class="flex items-center space-x-3 pb-4 border-b border-gray-800" style="border-color: #1e293b;">
-                <div class="p-2.5 bg-indigo-600 rounded-xl text-white shadow-md">
-                    <i class="fa-solid fa-sliders text-xl"></i>
+    <!-- UTAMA -->
+    <main class="container mx-auto px-4 py-6">
+        
+        <!-- BAR PANEL ADMIN (Hanya muncul jika sukses login) -->
+        <div id="adminPanel" class="hidden bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-6 flex flex-wrap gap-3 items-center justify-between">
+            <div class="flex items-center gap-2 text-yellow-800">
+                <span class="font-bold">Mode Admin Aktif:</span> Anda memiliki akses penuh manipulasi data.
+            </div>
+            <div class="flex gap-2">
+                <button onclick="bukaModalTambah()" class="bg-teal-700 hover:bg-teal-800 text-white text-xs px-3 py-2 rounded font-medium">➕ Tambah Aset Baru</button>
+                <label class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 rounded font-medium cursor-pointer">
+                    📥 Import Data CSV
+                    <input type="file" id="fileCsv" accept=".csv" class="hidden" onchange="importCsv(event)">
+                </label>
+            </div>
+        </div>
+
+        <!-- TABS NAVIGASI -->
+        <div class="flex border-b border-slate-200 mb-6">
+            <button onclick="gantiTab('kir')" id="tabKir" class="border-b-2 border-teal-600 px-4 py-2 text-sm font-bold text-teal-700">📋 Kartu Inventaris Ruangan (KIR)</button>
+            <button onclick="gantiTab('kalibrasi')" id="tabKalibrasi" class="border-b-2 border-transparent px-4 py-2 text-sm font-medium text-slate-500 hover:text-slate-700">⏰ Jadwal Kalibrasi Alat</button>
+        </div>
+
+        <!-- TAB CONTENT: KIR -->
+        <div id="kontenKir" class="block">
+            <div class="bg-white p-4 rounded-lg shadow-sm mb-4 flex flex-wrap gap-3 justify-between items-center">
+                <h2 class="text-lg font-bold text-slate-700">Daftar Laporan Inventaris Aset</h2>
+                <div class="flex gap-2">
+                    <input type="text" id="cariKir" placeholder="Cari nama barang/kode..." class="border border-slate-300 rounded px-3 py-1.5 text-sm focus:outline-teal-600">
+                </div>
+            </div>
+            <div class="overflow-x-auto bg-white rounded-lg shadow-sm">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100 text-slate-600 text-xs uppercase border-b border-slate-200">
+                            <th class="p-3">Kode Aset</th>
+                            <th class="p-3">Nama Barang</th>
+                            <th class="p-3">Merk / Tipe</th>
+                            <th class="p-3">Ruangan</th>
+                            <th class="p-3">Kondisi</th>
+                            <th id="thAksiKir" class="p-3 hidden">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelKirBody" class="text-sm divide-y divide-slate-100">
+                        <tr><td colspan="6" class="p-4 text-center text-slate-400">Memuat data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB CONTENT: KALIBRASI -->
+        <div id="kontenKalibrasi" class="hidden">
+            <div class="bg-white p-4 rounded-lg shadow-sm mb-4">
+                <h2 class="text-lg font-bold text-slate-700 mb-1">Jadwal Pengujian & Kalibrasi</h2>
+                <p class="text-xs text-slate-400">Daftar pemantauan berkala alat medis untuk kelayakan operasional.</p>
+            </div>
+            <div class="overflow-x-auto bg-white rounded-lg shadow-sm">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100 text-slate-600 text-xs uppercase border-b border-slate-200">
+                            <th class="p-3">Alat Medis</th>
+                            <th class="p-3">Kalibrasi Terakhir</th>
+                            <th class="p-3">Jadwal Selanjutnya</th>
+                            <th class="p-3">Instansi Penguji</th>
+                            <th class="p-3">Status</th>
+                            <th id="thAksiKalibrasi" class="p-3 hidden">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelKalibrasiBody" class="text-sm divide-y divide-slate-100">
+                        <tr><td colspan="6" class="p-4 text-center text-slate-400">Memuat data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL LOG IN -->
+    <div id="modalAuth" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg max-w-sm w-full p-6 relative">
+            <h3 class="text-lg font-bold mb-4 text-slate-700">Log In Administrator</h3>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold mb-1">Email</label>
+                    <input type="email" id="authEmail" class="w-full border p-2 rounded text-sm" placeholder="admin@rsudcicalengka.id">
                 </div>
                 <div>
-                    <h1 class="font-bold text-white text-lg tracking-wide leading-tight">SIM-ASET</h1>
-                    <p class="text-xs text-indigo-400 font-semibold" v-if="isLoggedIn">Admin Panel</p>
-                    <p class="text-xs text-emerald-400 font-semibold" v-else>Public View</p>
+                    <label class="block text-xs font-semibold mb-1">Password</label>
+                    <input type="password" id="authPassword" class="w-full border p-2 rounded text-sm" placeholder="******">
+                </div>
+                <button onclick="prosesLogin()" class="w-full bg-teal-700 text-white py-2 rounded text-sm font-semibold hover:bg-teal-800 transition">Masuk</button>
+                <button onclick="toggleAuthModal()" class="w-full bg-slate-100 text-slate-600 py-2 rounded text-sm font-medium hover:bg-slate-200 transition">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL FORM ENTRI / EDIT DATA (ADMIN) -->
+    <div id="modalForm" class="fixed inset-0 bg-black/50 z-40 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-lg max-w-md w-full p-6 space-y-4">
+            <h3 id="modalFormTitle" class="text-lg font-bold text-slate-700">Form Data Aset</h3>
+            <input type="hidden" id="formId">
+            <div class="grid grid-cols-2 gap-3">
+                <div class="col-span-2">
+                    <label class="block text-xs font-semibold mb-1">Kode Aset *</label>
+                    <input type="text" id="formKode" class="w-full border p-2 rounded text-sm">
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-xs font-semibold mb-1">Nama Barang *</label>
+                    <input type="text" id="formNama" class="w-full border p-2 rounded text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1">Merk / Tipe</label>
+                    <input type="text" id="formMerk" class="w-full border p-2 rounded text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1">Kondisi</label>
+                    <select id="formKondisi" class="w-full border p-2 rounded text-sm">
+                        <option value="Baik">Baik</option>
+                        <option value="Rusak Ringan">Rusak Ringan</option>
+                        <option value="Rusak Berat">Rusak Berat</option>
+                    </select>
                 </div>
             </div>
-
-            <nav class="mt-6">
-                <button @click="activeTab = 'dashboard'" :class="['nav-button', activeTab === 'dashboard' ? 'active' : '']">
-                    <i class="fa-solid fa-chart-pie mr-3 w-5"></i>
-                    <span>Dashboard</span>
-                </button>
-
-                <button @click="activeTab = 'assets'" :class="['nav-button', activeTab === 'assets' ? 'active' : '']">
-                    <i class="fa-solid fa-box-archive mr-3 w-5"></i>
-                    <span>KIR Ruang Aset</span>
-                    <span class="ml-auto bg-gray-800 text-indigo-300 text-xs px-2 py-0.5 rounded-full" style="background-color: #1e293b;">{{ assets.length }}</span>
-                </button>
-
-                <button v-if="isLoggedIn" @click="activeTab = 'mutation'" :class="['nav-button', activeTab === 'mutation' ? 'active' : '']">
-                    <i class="fa-solid fa-right-left mr-3 w-5"></i>
-                    <span>Mutasi Ruangan</span>
-                </button>
-
-                <button @click="activeTab = 'calibration'" :class="['nav-button', activeTab === 'calibration' ? 'active' : '']">
-                    <i class="fa-solid fa-calendar-check mr-3 w-5"></i>
-                    <span>Jadwal Kalibrasi</span>
-                    <span v-if="dueCalibrationCount > 0" class="ml-auto bg-rose-600 text-white text-xs px-2 py-0.5 rounded-full font-bold">{{ dueCalibrationCount }}</span>
-                </button>
-            </nav>
-        </div>
-
-        <!-- Tombol Gerbang Akses Login Admin -->
-        <div class="mt-auto p-4 rounded-xl" style="background-color: #1e293b;">
-            <div v-if="!isLoggedIn">
-                <button @click="openModal('login')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-xs text-white py-2.5 rounded-lg font-medium transition flex items-center justify-center gap-2 cursor-pointer border-none">
-                    <i class="fa-solid fa-right-to-bracket"></i> Login Admin
-                </button>
-            </div>
-            <div v-else class="space-y-2">
-                <div class="text-xs text-gray-300 truncate"><i class="fa-solid fa-user-shield text-indigo-400 mr-1.5"></i>{{ loggedInUserEmail }}</div>
-                <button @click="handleLogout" class="w-full bg-rose-600 hover:bg-rose-700 text-xs text-white py-2 rounded-lg font-medium transition flex items-center justify-center gap-2 cursor-pointer border-none">
-                    <i class="fa-solid fa-right-from-bracket"></i> Keluar / Logout
-                </button>
-            </div>
-
-            <div class="mt-4 pt-3 border-t border-gray-700 text-[11px] text-gray-400" style="border-color: #334155;">
-                <span class="block mb-1">Status Koneksi DB:</span>
-                <p v-if="dbConnected" class="text-emerald-400 font-medium m-0"><i class="fa-solid fa-circle-check mr-1"></i>Supabase Terhubung</p>
-                <p class="text-amber-400 font-medium m-0" v-else><i class="fa-solid fa-database mr-1"></i>Mode Data Lokal</p>
+            <div class="flex gap-2 justify-end pt-2">
+                <button onclick="tutupModalForm()" class="bg-slate-100 text-slate-600 px-4 py-2 rounded text-sm">Batal</button>
+                <button onclick="simpanData()" class="bg-teal-700 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-teal-800">Simpan Data</button>
             </div>
         </div>
-    </aside>
+    </div>
 
-    <!-- Main Content Area Kanan -->
-    <main class="custom-main">
-        <!-- Top Navbar -->
-        <header class="custom-header">
-            <div>
-                <h2 class="text-xl font-bold uppercase tracking-wide text-white m-0">
-                    <span v-if="activeTab === 'dashboard'">Dashboard Ringkasan</span>
-                    <span v-else-if="activeTab === 'assets'">KIR Ruang Barang Aset</span>
-                    <span v-else-if="activeTab === 'calibration'">Jadwal Kalibrasi & Notifikasi</span>
-                    <span v-else-if="activeTab === 'mutation'">Proses Mutasi Antar Ruangan</span>
-                </h2>
-                <p class="text-xs text-gray-400 m-0 mt-1">Kelola input barang, entri mutasi, dan verifikasi berkala.</p>
-            </div>
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // KONFIGURASI SUPABASE (Ganti dengan kredensial asli Anda)
+        const SUPABASE_URL = 'https://wzmjdlxnjoyzzvzpmhqj.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6bWpkbHhuam95enp2enBtaHFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAwMTU2NjgsImV4cCI6MjEwNTU5MTY2OH0.i8LtB72RGso_--VhWNQVpjFr44dHK_pYpRqsuMkCQ4c';
+        
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let isAdmin = false;
 
-            <div v-if="isLoggedIn">
-                <button @click="openModal('add-asset')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-2 border-none cursor-pointer">
-                    <i class="fa-solid fa-plus"></i>
-                    <span>Tambah Aset Baru</span>
-                </button>
-            </div>
-            <div v-else>
-                <span class="text-gray-400 text-xs px-3 py-2 rounded-xl border border-gray-700" style="background-color: #1e293b; border-color: #334155;">
-                    <i class="fa-solid fa-eye mr-1.5"></i> Mode Lihat Publik (Terbatas)
-                </span>
-            </div>
-        </header>
+        // Cek status sesi login saat aplikasi dibuka
+        window.onload = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            updateUIAkses(session);
+            muatDataKir();
+            muatDataKalibrasi();
+        };
 
-        <!-- Dynamic Body Content -->
-        <div class="p-6 space-y-6">
+        function updateUIAkses(session) {
+            isAdmin = !!session;
+            const adminPanel = document.getElementById('adminPanel');
+            const btnAuthAction = document.getElementById('btnAuthAction');
+            const thKir = document.getElementById('thAksiKir');
+            const thKalibrasi = document.getElementById('thAksiKalibrasi');
 
-            <!-- TAB 1: DASHBOARD -->
-            <div v-if="activeTab === 'dashboard'" class="space-y-6">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div class="card-box flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider m-0">Total Barang Aset</p>
-                            <h3 class="text-2xl font-bold text-white m-0 mt-1.5">{{ assets.length }} Unit</h3>
-                        </div>
-                        <div class="p-3 bg-indigo-900 rounded-xl text-indigo-400" style="background-color: rgba(79,70,229,0.15);"><i class="fa-solid fa-box text-xl"></i></div>
-                    </div>
-                    <div class="card-box flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider m-0">Perlu Kalibrasi</p>
-                            <h3 class="text-2xl font-bold text-rose-400 m-0 mt-1.5">{{ dueCalibrationCount }} Unit</h3>
-                        </div>
+            if(isAdmin) {
+                adminPanel.classList.remove('hidden');
