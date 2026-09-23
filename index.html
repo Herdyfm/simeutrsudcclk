@@ -4,23 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIM-ASET - Dashboard & Control Panel</title>
+    
+    <!-- PENGALIHAN CDN KE SERVER JSDELIVR YANG JAUH LEBIH STABIL -->
     <!-- Tailwind CSS -->
-    <script src="https://tailwindcss.com"></script>
-    <!-- Vue 3 CDN -->
-    <script src="https://unpkg.com"></script>
-    <!-- Supabase JS SDK CDN (Menggunakan unpkg UMD global agar sinkron dengan Vue non-module) -->
-    <script src="https://unpkg.com"></script>
+    <script src="https://jsdelivr.net"></script>
+    
+    <!-- Vue 3 Global Build -->
+    <script src="https://jsdelivr.net"></script>
+    
+    <!-- Supabase JS SDK UMD Build -->
+    <script src="https://jsdelivr.net"></script>
+    
     <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cloudflare.com">
-    <!-- Google Fonts -->
-    <link href="https://googleapis.com" rel="stylesheet">
+    <link rel="stylesheet" href="https://jsdelivr.net">
+    
+    <!-- Google Fonts Backup Style -->
+    <link rel="stylesheet" href="https://googleapis.com">
+    
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-100 antialiased min-h-screen">
 
-<!-- ATRIBUT v-cloak TELAH DIHAPUS SUPAYA LAYAR TIDAK BLANK PUTIH -->
 <div id="app" class="min-h-screen flex flex-col md:flex-row">
 
     <!-- Sidebar Navigation -->
