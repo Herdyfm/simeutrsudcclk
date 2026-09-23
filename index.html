@@ -1,130 +1,149 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIM-ASET - Admin Backend Panel</title>
-    <!-- Jalur CDN Resmi Paling Stabil -->
-    <script src="https://tailwindcss.com"></script>
-    <script src="https://unpkg.com"></script>
-    <script src="https://unpkg.com"></script>
-    <script src="https://cloudflare.com"></script>
-    <link rel="stylesheet" href="https://cloudflare.com">
-    <link href="https://googleapis.com" rel="stylesheet">
-    <style>body { font-family: 'Plus Jakarta Sans', sans-serif; } [v-cloak] { display: none; }</style>
-</head>
-<body class="bg-slate-900 text-slate-100 antialiased min-h-screen">
-<div id="app" v-cloak class="min-h-screen flex flex-col md:flex-row">
-    <!-- Tampilan Menu Sidebar -->
-    <aside class="w-full md:w-64 bg-slate-950 text-slate-300 flex-shrink-0 flex flex-col border-r border-slate-800 p-5">
-        <h1 class="font-bold text-white text-lg tracking-wide">SIM-ASET</h1>
-        <p class="text-xs text-indigo-400 font-semibold mb-6">Backend Admin Control</p>
-        <nav class="space-y-2">
-            <button @click="activeTab = 'assets'" :class="['w-full text-left px-4 py-2.5 rounded-xl transition text-sm', activeTab === 'assets' ? 'bg-indigo-600 text-white' : 'hover:bg-slate-800 text-slate-400']">Kelola Data Barang ({{ assets.length }})</button>
-            <button @click="activeTab = 'calibration'" :class="['w-full text-left px-4 py-2.5 rounded-xl transition text-sm', activeTab === 'calibration' ? 'bg-indigo-600 text-white' : 'hover:bg-slate-800 text-slate-400']">Update Kalibrasi</button>
-        </nav>
-    </aside>
-    <!-- Konten Utama Dashboard -->
-    <main class="flex-1 bg-slate-100 text-slate-800 p-6 flex flex-col">
-        <header class="flex justify-between items-center mb-6 bg-slate-900 text-white p-4 rounded-xl shadow">
-            <h2 class="text-xl font-bold">{{ activeTab === 'assets' ? 'Kelola Data Barang Aset' : 'Jadwal & Update Kalibrasi Alat' }}</h2>
-            <div class="flex gap-2" v-if="activeTab === 'assets'">
-                <button @click="openModal('add-asset')" class="bg-indigo-600 hover:bg-indigo-700 text-xs px-4 py-2 rounded-xl text-white">Tambah Aset Baru</button>
-            </div>
-        </header>
-        <!-- TABEL DATA BARANG ASET -->
-        <div v-if="activeTab === 'assets'" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead><tr class="bg-slate-50 border-b border-slate-200 text-slate-600 text-xs uppercase"><th class="p-3">Nama Barang</th><th class="p-3">Kode</th><th class="p-3">Ruangan</th><th class="p-3">Kondisi</th><th class="p-3 text-center">Aksi</th></tr></thead>
-                <tbody class="text-sm divide-y divide-slate-100">
-                    <tr v-for="item in assets" :key="item.id" class="hover:bg-slate-50">
-                        <td class="p-3 font-medium">{{ item.nama_barang }}</td><td class="p-3 text-slate-500">{{ item.kode_barang }}</td><td class="p-3 text-slate-500">{{ item.ruangan }}</td>
-                        <td class="p-3"><span :class="item.kondisi === 'Baik' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'" class="px-2 py-0.5 text-xs font-semibold rounded-full">{{ item.kondisi }}</span></td>
-                        <td class="p-3 text-center flex justify-center gap-2">
-                            <button @click="editAssetBtn(item)" class="bg-amber-500 text-white text-xs px-2.5 py-1 rounded-lg">Ubah</button>
-                            <button @click="deleteAsset(item.id)" class="bg-rose-600 text-white text-xs px-2.5 py-1 rounded-lg">Hapus</button>
-                        </td>
-                    </tr>
-                    <tr v-if="assets.length === 0"><td colspan="5" class="p-4 text-center text-slate-400">Tidak ada data aset atau koneksi database sedang dimuat...</td></tr>
-                </tbody>
-            </table>
-        </div>
-        <!-- TABEL JADWAL KALIBRASI -->
-        <div v-if="activeTab === 'calibration'" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead><tr class="bg-slate-50 border-b border-slate-200 text-slate-600 text-xs uppercase"><th class="p-3">Nama Barang</th><th class="p-3">Tgl Kalibrasi Terakhir</th><th class="p-3">Jadwal Berikutnya</th><th class="p-3 text-center">Aksi</th></tr></thead>
-                <tbody class="text-sm divide-y divide-slate-100">
-                    <tr v-for="item in assets" :key="'cal-'+item.id" class="hover:bg-slate-50">
-                        <td class="p-3 font-medium">{{ item.nama_barang }}</td><td class="p-3 text-slate-500">{{ item.terakhir_kalibrasi || '-' }}</td><td class="p-3 text-indigo-600 font-semibold">{{ item.jadwal_kalibrasi || '-' }}</td>
-                        <td class="p-3 text-center"><button @click="openCalibrationModal(item)" class="bg-indigo-600 text-white text-xs px-3 py-1 rounded-lg">Set Tanggal</button></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </main>
-</div>
-
-<!-- MODAL ENTRY DATA BARU -->
-<div v-if="showAddModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden p-6 text-slate-800 space-y-4">
-        <h3 class="font-bold text-lg">{{ isEditMode ? 'Form Ubah Aset' : 'Form Tambah Aset Baru' }}</h3>
-        <input v-model="newAsset.nama_barang" placeholder="Nama Barang" type="text" class="w-full px-3 py-2 border rounded-xl bg-slate-50">
-        <input v-model="newAsset.kode_barang" placeholder="Kode Barang" type="text" class="w-full px-3 py-2 border rounded-xl bg-slate-50">
-        <input v-model="newAsset.ruangan" placeholder="Lokasi Ruangan" type="text" class="w-full px-3 py-2 border rounded-xl bg-slate-50">
-        <select v-model="newAsset.kondisi" class="w-full px-3 py-2 border rounded-xl bg-slate-50"><option value="Baik">Baik</option><option value="Rusak Ringan">Rusak Ringan</option><option value="Rusak Berat">Rusak Berat</option></select>
-        <div class="flex justify-end gap-2"><button @click="showAddModal = false" class="px-4 py-2 bg-slate-100 text-sm rounded-xl">Batal</button><button @click="submitAsset" class="px-4 py-2 bg-indigo-600 text-white text-sm rounded-xl">Simpan</button></div>
-    </div>
-</div>
-
-<!-- MODAL UPDATE KALIBRASI -->
-<div v-if="showCalModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden p-6 text-slate-800 space-y-4">
-        <h3 class="font-bold text-lg">Set Kalibrasi: {{ selectedAssetForCal.nama_barang }}</h3>
-        <div><label class="text-xs text-slate-500 font-semibold block mb-1">Terakhir Kalibrasi</label><input type="date" v-model="calibrationData.terakhir_kalibrasi" class="w-full px-3 py-2 border rounded-xl bg-slate-50"></div>
-        <div><label class="text-xs text-slate-500 font-semibold block mb-1">Jadwal Kalibrasi Berikutnya</label><input type="date" v-model="calibrationData.jadwal_kalibrasi" class="w-full px-3 py-2 border rounded-xl bg-slate-50"></div>
-        <div class="flex justify-end gap-2"><button @click="showCalModal = false" class="px-4 py-2 bg-slate-100 text-sm rounded-xl">Batal</button><button @click="submitCalibrationUpdate" class="px-4 py-2 bg-indigo-600 text-white text-sm rounded-xl">Simpan</button></div>
-    </div>
-</div>
+<!-- Masukkan CDN Supabase ini di dalam tag <head> bersama script lainnya -->
+<script src="https://jsdelivr.net"></script>
 
 <script>
-    const SUPABASE_URL = 'https://wzmjdlxnjoyzzvzpmhqj.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6bWpkbHhuam95enp2enBtaHFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAwMTU2NjgsImV4cCI6MjEwNTU5MTY2OH0.i8LtB72RGso_--VhWNQVpjFr44dHK_pYpRqsuMkCQ4c';
-    
-    // Kita buat penampung klien Supabase kosong di awal
-    let _supabase = null;
-    const { createApp } = Vue;
+    const { createApp, ref, computed, onMounted } = Vue;
 
     createApp({
-        data() {
+        setup() {
+            // --- 1. KONFIGURASI SUPABASE ---
+            // Ganti URL dan KEY ini dengan milik proyek Supabase Anda
+            const SUPABASE_URL = "https://wzmjdlxnjoyzzvzpmhqj.supabase.co/rest/v1/"; 
+            const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6bWpkbHhuam95enp2enBtaHFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAwMTU2NjgsImV4cCI6MjEwNTU5MTY2OH0.i8LtB72RGso_--VhWNQVpjFr44dHK_pYpRqsuMkCQ4c";
+            const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            // --- 2. STATE VARIABEL ---
+            const activeTab = ref('dashboard');
+            const assets = ref([]);
+            const mutations = ref([]);
+            const roomList = ref(['Ruang Lab A', 'Ruang Lab B', 'Gudang Utama']); // Sesuaikan dengan kebutuhan
+            
+            // Variabel Form / Modalnya
+            const activeModal = ref(null);
+            const selectedAsset = ref({});
+            // Tambahkan variabel form input asset/mutation Anda di sini...
+
+            // --- 3. FUNGSI CRUD SUPABASE ---
+
+            // A. Ambil Data (Read) saat aplikasi pertama kali dimuat
+            const fetchAllData = async () => {
+                try {
+                    // Ambil Data Aset
+                    const { data: assetData, error: assetErr } = await supabase
+                        .from('assets')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+                    if (assetErr) throw assetErr;
+                    assets.value = assetData || [];
+
+                    // Ambil Data Mutasi
+                    const { data: mutationData, error: mutErr } = await supabase
+                        .from('mutations')
+                        .select('*')
+                        .order('date', { ascending: false });
+                    if (mutErr) throw mutErr;
+                    mutations.value = mutationData || [];
+                } catch (error) {
+                    alert("Gagal mengambil data dari database: " + error.message);
+                }
+            };
+
+            // B. Tambah Aset Baru (Create)
+            const handleAddAsset = async (newAssetData) => {
+                try {
+                    const { data, error } = await supabase
+                        .from('assets')
+                        .insert([newAssetData])
+                        .select();
+                    
+                    if (error) throw error;
+                    
+                    // Update state lokal Vue
+                    assets.value.unshift(data[0]);
+                    closeModal();
+                    alert("Aset berhasil ditambahkan ke Supabase!");
+                } catch (error) {
+                    alert("Gagal menambah aset: " + error.message);
+                }
+            };
+
+            // C. Edit / Update Data Aset (Update)
+            const handleUpdateAsset = async (id, updatedData) => {
+                try {
+                    const { error } = await supabase
+                        .from('assets')
+                        .update(updatedData)
+                        .eq('id', id);
+                    
+                    if (error) throw error;
+
+                    // Update state lokal Vue
+                    const index = assets.value.findIndex(a => a.id === id);
+                    if (index !== -1) {
+                        assets.value[index] = { ...assets.value[index], ...updatedData };
+                    }
+                    closeModal();
+                    alert("Data aset berhasil diperbarui!");
+                } catch (error) {
+                    alert("Gagal memperbarui data: " + error.message);
+                }
+            };
+
+            // D. Proses Mutasi Barang (Double Action: Insert Log & Update Ruangan)
+            const handleProcessMutation = async (mutationForm) => {
+                try {
+                    // 1. Simpan ke tabel riwayat mutasi
+                    const { error: mutError } = await supabase
+                        .from('mutations')
+                        .insert([{
+                            assetName: mutationForm.assetName,
+                            fromRoom: mutationForm.fromRoom,
+                            toRoom: mutationForm.toRoom,
+                            pic: mutationForm.pic,
+                            notes: mutationForm.notes,
+                            date: mutationForm.date
+                        }]);
+                    if (mutError) throw mutError;
+
+                    // 2. Update Lokasi Ruangan Terkini di tabel assets berdasarkan kodenya
+                    const { error: assetError } = await supabase
+                        .from('assets')
+                        .update({ room: mutationForm.toRoom })
+                        .eq('code', mutationForm.assetCode);
+                    if (assetError) throw assetError;
+
+                    // Refresh data lokal dari database agar tersinkronisasi sempurna
+                    await fetchAllData();
+                    alert("Proses mutasi berhasil dicatat dan diperbarui!");
+                } catch (error) {
+                    alert("Gagal memproses mutasi: " + error.message);
+                }
+            };
+
+            // E. Hapus Aset (Optional Delete)
+            const handleDeleteAsset = async (id) => {
+                if (confirm("Apakah Anda yakin ingin menghapus aset ini secara permanen dari database?")) {
+                    try {
+                        const { error } = await supabase.from('assets').delete().eq('id', id);
+                        if (error) throw error;
+                        assets.value = assets.value.filter(a => a.id !== id);
+                    } catch (error) {
+                        alert("Gagal menghapus aset: " + error.message);
+                    }
+                }
+            };
+
+            // --- 4. LIFECYCLE HOOK ---
+            onMounted(() => {
+                fetchAllData(); // Jalankan sinkronisasi database saat web dibuka
+            });
+
+            // Return semua fungsi dan properti agar bisa dibaca oleh template HTML HTML Anda
             return {
-                activeTab: 'assets', assets: [], showAddModal: false, showCalModal: false, isEditMode: false, editingId: null,
-                newAsset: { nama_barang: '', kode_barang: '', ruangan: '', kondisi: 'Baik' },
-                selectedAssetForCal: {}, calibrationData: { terakhir_kalibrasi: '', jadwal_kalibrasi: '' }
+                activeTab, assets, mutations, roomList, activeModal, selectedAsset,
+                fetchAllData, handleAddAsset, handleUpdateAsset, handleProcessMutation, handleDeleteAsset
+                // ... return computed properties Anda seperti dueCalibrationCount, totalAssetValue dll.
             }
-        },
-        methods: {
-            // FUNGSI UTAMA: Menunggu CDN Supabase sampai 100% siap dimuat browser
-            initSupabaseAndFetch() {
-                if (window.supabase && window.supabase.createClient) {
-                    _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                    console.log("Koneksi Supabase siap!");
-                    this.fetchAssets();
-                } else {
-                    // Jika pustaka CDN Supabase belum siap, tunda 100 milidetik lalu coba lagi secara berulang
-                    setTimeout(this.initSupabaseAndFetch, 100);
-                }
-            },
-            openModal(type) {
-                if (type === 'add-asset') {
-                    this.isEditMode = false;
-                    this.newAsset = { nama_barang: '', kode_barang: '', ruangan: '', kondisi: 'Baik' };
-                    this.showAddModal = true;
-                }
-            },
-            async fetchAssets() {
-                if (!_supabase) return;
-                const { data, error } = await _supabase.from('sim-aset-db').select('*');
-                if (!error) this.assets = data;
-            },
-            async submitAsset() {
-                if (!_supabase) return;
+        }
+    }).mount('#app');
+</script>
