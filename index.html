@@ -21,7 +21,7 @@
             // Ganti URL dan KEY ini dengan milik proyek Supabase Anda
             const SUPABASE_URL = "https://wzmjdlxnjoyzzvzpmhqj.supabase.co/rest/v1/"; 
             const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6bWpkbHhuam95enp2enBtaHFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAwMTU2NjgsImV4cCI6MjEwNTU5MTY2OH0.i8LtB72RGso_--VhWNQVpjFr44dHK_pYpRqsuMkCQ4c";
-            const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
             // --- 2. STATE VARIABEL ---
             const activeTab = ref('dashboard');
