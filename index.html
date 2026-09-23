@@ -8,8 +8,6 @@
     <script src="https://tailwindcss.com"></script>
     <!-- Vue 3 CDN -->
     <script src="https://unpkg.com"></script>
-    <!-- MENGGANTI JSDELIVR DENGAN UNPKG UNTUK SUPABASE SDK (Menghindari ERR_CONNECTION_TIMED_OUT) -->
-    <script src="https://unpkg.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cloudflare.com">
     <!-- Google Fonts -->
@@ -104,7 +102,7 @@
                     <span v-else-if="activeTab === 'calibration'">Jadwal Kalibrasi & Notifikasi</span>
                     <span v-else-if="activeTab === 'mutation'">Proses Mutasi Antar Ruangan</span>
                 </h2>
-                <p class="text-xs text-slate-400 mt-0.5">Kelola input barang, entri mutasi, dan reminder secara otomatis.</p>
+                <p class="text-xs text-slate-400 mt-0.5">Kelola input barang, entri mutasi, dan pemeliharaan.</p>
             </div>
 
             <!-- Tombol Aksi Kritis: Hanya muncul jika Admin sudah Login -->
@@ -145,3 +143,8 @@
                 
                 <div class="bg-slate-950 p-6 rounded-2xl border border-slate-800">
                     <h3 class="text-sm font-bold text-slate-300 mb-2 uppercase tracking-wider">Informasi Layanan Publik</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">Selamat datang di aplikasi pelaporan internal SIM-ASET. Halaman publik ini menyajikan visualisasi data berkala mengenai ketersediaan inventaris ruang dan jadwal pemeliharaan alat secara transparan.</p>
+                </div>
+            </div>
+
+            <!-- TAB 2: ASSETS -->
