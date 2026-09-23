@@ -5,113 +5,192 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIM-ASET - Dashboard & Control Panel</title>
     
-    <!-- MENGGUNAKAN CDN CLOUDFLARE DAN BROWSER BUILT-IN SEBAGAI PENGGANTI JSDELIVR -->
-    <!-- Tailwind CSS (Play CDN via Cloudflare / Official standalone script) -->
+    <!-- Library Inti Terpercaya & Anti-Blokir -->
     <script src="https://cloudflare.com"></script>
-    
-    <!-- Vue 3 Global Build dari Cloudflare CDN -->
     <script src="https://cloudflare.com"></script>
-    
-    <!-- Supabase JS SDK dari Unpkg (Versi spesifik non-jsdelivr) -->
     <script src="https://cloudflare.com"></script>
-    
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cloudflare.com">
-    
-    <!-- Google Fonts Backup Style -->
     <link rel="stylesheet" href="https://googleapis.com">
     
+    <!-- CSS Murni Pengunci Struktur Layout (Menjamin Halaman Tetap Rapi & Berwarna Gelap) -->
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #0f172a !important; 
+            color: #f8fafc !important; 
+            margin: 0; 
+            padding: 0;
+        }
+        .custom-layout {
+            display: flex;
+            flex-direction: row;
+            min-height: 100vh;
+        }
+        .custom-sidebar {
+            width: 260px;
+            background-color: #020617;
+            border-right: 1px solid #1e293b;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .custom-main {
+            flex-1: 1 1 0%;
+            display: flex;
+            flex-direction: column;
+            background-color: #0f172a;
+            width: 100%;
+        }
+        .custom-header {
+            background-color: #020617;
+            border-bottom: 1px solid #1e293b;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-button {
+            width: 100%;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 6px;
+            color: #94a3b8;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .nav-button:hover, .nav-button.active {
+            background-color: #4f46e5;
+            color: #ffffff;
+        }
+        .card-box {
+            background-color: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 16px;
+            padding: 20px;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .data-table th {
+            background-color: #0f172a;
+            color: #94a3b8;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #1e293b;
+        }
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #1e293b;
+        }
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0,0,0,0.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            padding: 16px;
+        }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 antialiased min-h-screen">
+<body>
 
-<div id="app" class="min-h-screen flex flex-col md:flex-row">
+<div id="app" class="custom-layout">
 
-    <!-- Sidebar Navigation -->
-    <aside class="w-full md:w-64 bg-slate-955 p-4 border-r border-slate-800 flex flex-col justify-between" style="background-color: #020617; border-color: #1e293b;">
+    <!-- Sidebar Kontrol Panel Kiri -->
+    <aside class="custom-sidebar">
         <div>
-            <div class="p-3 flex items-center space-x-3 border-b border-slate-800" style="border-color: #1e293b;">
-                <div class="p-2 bg-indigo-600 rounded-xl text-white">
+            <div class="flex items-center space-x-3 pb-4 border-b border-gray-800" style="border-color: #1e293b;">
+                <div class="p-2.5 bg-indigo-600 rounded-xl text-white shadow-md">
                     <i class="fa-solid fa-sliders text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-white text-lg tracking-wide">SIM-ASET</h1>
+                    <h1 class="font-bold text-white text-lg tracking-wide leading-tight">SIM-ASET</h1>
                     <p class="text-xs text-indigo-400 font-semibold" v-if="isLoggedIn">Admin Panel</p>
                     <p class="text-xs text-emerald-400 font-semibold" v-else>Public View</p>
                 </div>
             </div>
 
-            <nav class="mt-6 space-y-2">
-                <button @click="activeTab = 'dashboard'" :class="['w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition text-sm font-medium', activeTab === 'dashboard' ? 'bg-indigo-600 text-white' : 'hover:bg-slate-800 text-slate-400']" style="text-align: left; width: 100%;">
-                    <i class="fa-solid fa-chart-pie w-5"></i>
+            <nav class="mt-6">
+                <button @click="activeTab = 'dashboard'" :class="['nav-button', activeTab === 'dashboard' ? 'active' : '']">
+                    <i class="fa-solid fa-chart-pie mr-3 w-5"></i>
                     <span>Dashboard</span>
                 </button>
 
-                <button @click="activeTab = 'assets'" :class="['w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition text-sm font-medium', activeTab === 'assets' ? 'bg-indigo-600 text-white' : 'hover:bg-slate-800 text-slate-400']" style="text-align: left; width: 100%;">
-                    <i class="fa-solid fa-box-archive w-5"></i>
+                <button @click="activeTab = 'assets'" :class="['nav-button', activeTab === 'assets' ? 'active' : '']">
+                    <i class="fa-solid fa-box-archive mr-3 w-5"></i>
                     <span>KIR Ruang Aset</span>
-                    <span class="ml-auto bg-slate-800 text-indigo-300 text-xs px-2 py-0.5 rounded-full">{{ assets.length }}</span>
+                    <span class="ml-auto bg-gray-800 text-indigo-300 text-xs px-2 py-0.5 rounded-full" style="background-color: #1e293b;">{{ assets.length }}</span>
                 </button>
 
-                <button v-if="isLoggedIn" @click="activeTab = 'mutation'" :class="['w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition text-sm font-medium', activeTab === 'mutation' ? 'bg-indigo-600 text-white' : 'hover:bg-slate-800 text-slate-400']" style="text-align: left; width: 100%;">
-                    <i class="fa-solid fa-right-left w-5"></i>
+                <button v-if="isLoggedIn" @click="activeTab = 'mutation'" :class="['nav-button', activeTab === 'mutation' ? 'active' : '']">
+                    <i class="fa-solid fa-right-left mr-3 w-5"></i>
                     <span>Mutasi Ruangan</span>
                 </button>
 
-                <button @click="activeTab = 'calibration'" :class="['w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition text-sm font-medium', activeTab === 'calibration' ? 'bg-indigo-600 text-white' : 'hover:bg-slate-800 text-slate-400']" style="text-align: left; width: 100%;">
-                    <i class="fa-solid fa-calendar-check w-5"></i>
+                <button @click="activeTab = 'calibration'" :class="['nav-button', activeTab === 'calibration' ? 'active' : '']">
+                    <i class="fa-solid fa-calendar-check mr-3 w-5"></i>
                     <span>Jadwal Kalibrasi</span>
-                    <span v-if="dueCalibrationCount > 0" class="ml-auto bg-rose-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">{{ dueCalibrationCount }}</span>
+                    <span v-if="dueCalibrationCount > 0" class="ml-auto bg-rose-600 text-white text-xs px-2 py-0.5 rounded-full font-bold">{{ dueCalibrationCount }}</span>
                 </button>
             </nav>
         </div>
 
-        <div class="mt-auto p-3 bg-slate-800 rounded-xl" style="background-color: #1e293b;">
+        <!-- Tombol Gerbang Akses Login Admin -->
+        <div class="mt-auto p-4 rounded-xl" style="background-color: #1e293b;">
             <div v-if="!isLoggedIn">
-                <button @click="openModal('login')" class="w-full bg-indigo-600 text-xs text-white py-2 rounded-lg font-medium hover:bg-indigo-700 transition flex items-center justify-center gap-2">
+                <button @click="openModal('login')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-xs text-white py-2.5 rounded-lg font-medium transition flex items-center justify-center gap-2 cursor-pointer border-none">
                     <i class="fa-solid fa-right-to-bracket"></i> Login Admin
                 </button>
             </div>
             <div v-else class="space-y-2">
-                <div class="text-xs text-slate-300 truncate"><i class="fa-solid fa-user-shield text-indigo-400 mr-1"></i>{{ loggedInUserEmail }}</div>
-                <button @click="handleLogout" class="w-full bg-rose-600 text-xs text-white py-2 rounded-lg font-medium hover:bg-rose-700 transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                <div class="text-xs text-gray-300 truncate"><i class="fa-solid fa-user-shield text-indigo-400 mr-1.5"></i>{{ loggedInUserEmail }}</div>
+                <button @click="handleLogout" class="w-full bg-rose-600 hover:bg-rose-700 text-xs text-white py-2 rounded-lg font-medium transition flex items-center justify-center gap-2 cursor-pointer border-none">
+                    <i class="fa-solid fa-right-from-bracket"></i> Keluar / Logout
                 </button>
             </div>
 
-            <div class="mt-4 pt-3 border-t border-slate-700 text-xs">
-                <span class="text-slate-400 block mb-1">Status Koneksi DB:</span>
-                <p v-if="dbConnected" class="text-emerald-400 font-medium"><i class="fa-solid fa-circle-check mr-1"></i>Supabase Terhubung</p>
-                <p class="text-amber-400 font-medium" v-else><i class="fa-solid fa-database mr-1"></i>Mode Data Lokal</p>
+            <div class="mt-4 pt-3 border-t border-gray-700 text-[11px] text-gray-400" style="border-color: #334155;">
+                <span class="block mb-1">Status Koneksi DB:</span>
+                <p v-if="dbConnected" class="text-emerald-400 font-medium m-0"><i class="fa-solid fa-circle-check mr-1"></i>Supabase Terhubung</p>
+                <p class="text-amber-400 font-medium m-0" v-else><i class="fa-solid fa-database mr-1"></i>Mode Data Lokal</p>
             </div>
         </div>
     </aside>
 
-    <!-- Main Content Area -->
-    <main class="flex-1 flex flex-col bg-slate-900 overflow-y-auto">
+    <!-- Main Content Area Kanan -->
+    <main class="custom-main">
         <!-- Top Navbar -->
-        <header class="bg-slate-950 border-b border-slate-800 px-6 py-4 flex items-center justify-between shadow-md" style="background-color: #020617; border-color: #1e293b;">
+        <header class="custom-header">
             <div>
-                <h2 class="text-xl font-bold uppercase tracking-wide text-white">
+                <h2 class="text-xl font-bold uppercase tracking-wide text-white m-0">
                     <span v-if="activeTab === 'dashboard'">Dashboard Ringkasan</span>
                     <span v-else-if="activeTab === 'assets'">KIR Ruang Barang Aset</span>
                     <span v-else-if="activeTab === 'calibration'">Jadwal Kalibrasi & Notifikasi</span>
                     <span v-else-if="activeTab === 'mutation'">Proses Mutasi Antar Ruangan</span>
                 </h2>
-                <p class="text-xs text-slate-400 mt-0.5">Kelola input barang, entri mutasi, dan pemeliharaan Alat.</p>
+                <p class="text-xs text-gray-400 m-0 mt-1">Kelola input barang, entri mutasi, dan verifikasi berkala.</p>
             </div>
 
             <div v-if="isLoggedIn">
-                <button @click="openModal('add-asset')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-2">
+                <button @click="openModal('add-asset')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-2 border-none cursor-pointer">
                     <i class="fa-solid fa-plus"></i>
                     <span>Tambah Aset Baru</span>
                 </button>
             </div>
             <div v-else>
-                <span class="bg-slate-800 text-slate-400 text-xs px-3 py-1.5 rounded-xl border border-slate-700" style="background-color: #1e293b; border-color: #334155;">
-                    <i class="fa-solid fa-eye mr-1"></i> Mode Lihat Publik
+                <span class="text-gray-400 text-xs px-3 py-2 rounded-xl border border-gray-700" style="background-color: #1e293b; border-color: #334155;">
+                    <i class="fa-solid fa-eye mr-1.5"></i> Mode Lihat Publik (Terbatas)
                 </span>
             </div>
         </header>
@@ -122,30 +201,15 @@
             <!-- TAB 1: DASHBOARD -->
             <div v-if="activeTab === 'dashboard'" class="space-y-6">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div class="p-5 rounded-2xl border flex items-center justify-between shadow-sm" style="background-color: #020617; border-color: #1e293b;">
+                    <div class="card-box flex items-center justify-between">
                         <div>
-                            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Barang Aset</p>
-                            <h3 class="text-2xl font-bold text-white mt-1">{{ assets.length }} Unit</h3>
+                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider m-0">Total Barang Aset</p>
+                            <h3 class="text-2xl font-bold text-white m-0 mt-1.5">{{ assets.length }} Unit</h3>
                         </div>
-                        <div class="p-3 bg-indigo-900 rounded-xl text-indigo-400"><i class="fa-solid fa-box text-xl"></i></div>
+                        <div class="p-3 bg-indigo-900 rounded-xl text-indigo-400" style="background-color: rgba(79,70,229,0.15);"><i class="fa-solid fa-box text-xl"></i></div>
                     </div>
-                    <div class="p-5 rounded-2xl border flex items-center justify-between shadow-sm" style="background-color: #020617; border-color: #1e293b;">
+                    <div class="card-box flex items-center justify-between">
                         <div>
-                            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Perlu Kalibrasi</p>
-                            <h3 class="text-2xl font-bold text-rose-400 mt-1">{{ dueCalibrationCount }} Unit</h3>
+                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider m-0">Perlu Kalibrasi</p>
+                            <h3 class="text-2xl font-bold text-rose-400 m-0 mt-1.5">{{ dueCalibrationCount }} Unit</h3>
                         </div>
-                        <div class="p-3 bg-rose-900 rounded-xl text-rose-400"><i class="fa-solid fa-triangle-exclamation text-xl"></i></div>
-                    </div>
-                </div>
-                
-                <div class="p-6 rounded-2xl border" style="background-color: #020617; border-color: #1e293b;">
-                    <h3 class="text-sm font-bold text-slate-300 mb-2 uppercase tracking-wider">Informasi Layanan Publik</h3>
-                    <p class="text-xs text-slate-400 leading-relaxed">Selamat datang di aplikasi pelaporan internal SIM-ASET. Halaman publik ini menyajikan visualisasi data berkala mengenai ketersediaan inventaris ruang dan jadwal pemeliharaan alat secara transparan.</p>
-                </div>
-            </div>
-
-            <!-- TAB 2: ASSETS -->
-            <div v-if="activeTab === 'assets'" class="rounded-2xl border overflow-hidden shadow-sm" style="background-color: #020617; border-color: #1e293b;">
-                <div class="p-5 border-b flex flex-col sm:flex-row items-center justify-between gap-4" style="border-color: #1e293b;">
-                    <h3 class="font-bold text-white text-sm">Daftar Inventaris KIR Barang Aset</h3>
-                    <div class="text-[11px] text-amber-400" v-if="!isLoggedIn">
